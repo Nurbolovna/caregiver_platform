@@ -7,7 +7,7 @@ import os
 # Note: If DATABASE_URL environment variable is set, it will be used first
 # If you encounter connection errors, check environment variable: echo $DATABASE_URL
 # To clear environment variable: unset DATABASE_URL
-DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://nazerke:nagi753400@localhost:5433/caregiver_platform')
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/caregiver_platform')
 
 # Debug: Display configuration being used (password masked)
 if DATABASE_URL and '@' in DATABASE_URL:
