@@ -1,15 +1,15 @@
-# queries.py
-"""
-CSCI 341 Assignment 3 - Part 2: Python Queries
-This script implements all required SQL queries using SQLAlchemy.
-"""
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 import os
 
 def main():
+<<<<<<< HEAD
     # Database connection - Update with your credentials
     DATABASE_URL = "postgresql://nuraiaripbay:050921@localhost:5432/caregiver_platform"
+=======
+    # You can update your credentials here
+    DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/caregiver_platform"
+>>>>>>> 5c2d7286488f87a11aeaafed19c20ef22e1aec10
     engine = create_engine(DATABASE_URL)
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -17,9 +17,9 @@ def main():
     print("=== CSCI 341 Assignment 3 - Caregiver Platform ===\n")
     
     try:
-        # 3. UPDATE SQL Statements
-        print("3. UPDATE SQL Statements")
-        print("3.1 Updating Arman Armanov's phone number...")
+        # 3.Updating SQL Statements
+        print("3. Update SQL Statements")
+        print("3.1 Updating Arman Armanov's phone number")
         update_phone = text("""
             UPDATE "user" 
             SET phone_number = '+77773414141' 
@@ -29,7 +29,7 @@ def main():
         session.commit()
         print("Phone number updated successfully")
         
-        print("\n3.2 Updating caregiver hourly rates...")
+        print("\n3.2 Updating caregiver hourly rates")
         update_rates = text("""
             UPDATE caregiver 
             SET hourly_rate = 
@@ -42,9 +42,9 @@ def main():
         session.commit()
         print("Hourly rates updated successfully")
         
-        # 4. DELETE SQL Statements
-        print("\n4. DELETE SQL Statements")
-        print("4.1 Deleting jobs posted by Amina Aminova...")
+        # 4.Deleting SQL Statements
+        print("\n4. Delete SQL Statements")
+        print("4.1 Deleting jobs posted by Amina Aminova")
         delete_jobs = text("""
             DELETE FROM job 
             WHERE member_user_id IN (
@@ -60,9 +60,9 @@ def main():
         print(f"Deleted {result.rowcount} job(s) posted by Amina Aminova")
         
         
-        print("\n4.2 Deleting all members who live on Kabanbay Batyr street...")
+        print("\n4.2 Deleting all members who live on Kabanbay Batyr street")
         
-        # 2. Delete APPOINTMENTS referencing these members
+        # 2.Deleting appointments referencing these members
         delete_appointments = text("""
             DELETE FROM appointment 
             WHERE member_user_id IN (
@@ -72,7 +72,7 @@ def main():
         """)
         session.execute(delete_appointments)
         
-        # 3. Delete JOB APPLICATIONS for jobs posted by these members
+        # 3.Deleting job applications for jobs posted by these members
         delete_job_apps = text("""
             DELETE FROM job_application 
             WHERE job_id IN (
@@ -85,7 +85,7 @@ def main():
         """)
         session.execute(delete_job_apps)
         
-        # 4. Delete JOBS posted by these members
+        # 4. Deleting jobs posted by these members
         delete_jobs = text("""
             DELETE FROM job 
             WHERE member_user_id IN (
@@ -95,7 +95,7 @@ def main():
         """)
         session.execute(delete_jobs)
         
-        # 5. Delete USERS (members) who live on this street
+        # 5. Deleting users who live on this street
         delete_members = text("""
             DELETE FROM "user" 
             WHERE user_id IN (
@@ -108,7 +108,7 @@ def main():
         print(f"Deleted {result.rowcount} member(s) living on Kabanbay Batyr street")
         
         
-        # 5. SIMPLE QUERIES
+        # 5.Simple queries
         print("\n5. SIMPLE QUERIES")
         
         print("\n5.1 Caregiver and member names for accepted appointments:")
@@ -127,7 +127,7 @@ def main():
         """)
         result_5_1 = session.execute(query_5_1)
         for row in result_5_1:
-            print(f"   Caregiver: {row.caregiver_name} {row.caregiver_surname}, Member: {row.member_name} {row.member_surname}")
+            print(f"Caregiver: {row.caregiver_name} {row.caregiver_surname}, Member: {row.member_name} {row.member_surname}")
         
         
         print("\n5.2 Job IDs that contain 'soft-spoken' in their other requirements:")
@@ -137,7 +137,7 @@ def main():
         """)
         result_5_2 = session.execute(query_5_2)
         for row in result_5_2:
-            print(f"   Job ID: {row.job_id}")
+            print(f"Job ID: {row.job_id}")
         
         
         print("\n5.3 Work hours of all babysitter positions:")
@@ -149,7 +149,7 @@ def main():
         """)
         result_5_3 = session.execute(query_5_3)
         for row in result_5_3:
-            print(f"   Hours: {row.work_hours}")
+            print(f"Hours: {row.work_hours}")
         
         
         print("\n5.4 Members looking for Elderly Care in Astana with 'No pets' rule:")
@@ -166,10 +166,10 @@ def main():
         """)
         result_5_4 = session.execute(query_5_4)
         for row in result_5_4:
-            print(f"   Member: {row.given_name} {row.surname}")
+            print(f"Member: {row.given_name} {row.surname}")
         
         
-        # 6. COMPLEX QUERIES
+        # 6.Complex queries
         print("\n6. COMPLEX QUERIES")
         
         print("\n6.1 Count the number of applicants for each job:")
@@ -182,7 +182,7 @@ def main():
         """)
         result_6_1 = session.execute(query_6_1)
         for row in result_6_1:
-            print(f"   Job ID: {row.job_id}, Applicants: {row.applicant_count}")
+            print(f"Job ID: {row.job_id}, Applicants: {row.applicant_count}")
         
         
         print("\n6.2 Total hours spent by caregivers for all accepted appointments:")
@@ -193,7 +193,7 @@ def main():
         """)
         result_6_2 = session.execute(query_6_2)
         total_hours = result_6_2.scalar()
-        print(f"   Total Hours: {total_hours}")
+        print(f"Total Hours: {total_hours}")
         
         
         print("\n6.3 Average pay of caregivers based on accepted appointments:")
@@ -205,7 +205,7 @@ def main():
         """)
         result_6_3 = session.execute(query_6_3)
         avg_pay = result_6_3.scalar()
-        print(f"   Average Pay: ${avg_pay:.2f}")
+        print(f"Average Pay: ${avg_pay:.2f}")
         
         
         print("\n6.4 Caregivers who earn above average based on accepted appointments:")
@@ -224,10 +224,10 @@ def main():
         """)
         result_6_4 = session.execute(query_6_4)
         for row in result_6_4:
-            print(f"   Caregiver: {row.given_name} {row.surname}, Earnings: ${row.total_earnings:.2f}")
+            print(f"Caregiver: {row.given_name} {row.surname}, Earnings: ${row.total_earnings:.2f}")
         
         
-        # 7. QUERY WITH DERIVED ATTRIBUTE
+        # 7. Query with derived attribute
         print("\n7. QUERY WITH DERIVED ATTRIBUTE")
         query_7 = text("""
             SELECT 
@@ -243,14 +243,14 @@ def main():
         """)
         result_7 = session.execute(query_7)
         total_overall_cost = 0
-        print("   Total cost for each accepted appointment:")
+        print("Total cost for each accepted appointment:")
         for row in result_7:
-            print(f"   {row.given_name} {row.surname}: {row.work_hours}h × ${row.hourly_rate}/h = ${row.total_cost:.2f}")
+            print(f"{row.given_name} {row.surname}: {row.work_hours}h × ${row.hourly_rate}/h = ${row.total_cost:.2f}")
             total_overall_cost += float(row.total_cost)
-        print(f"   Overall Total Cost: ${total_overall_cost:.2f}")
+        print(f"Overall Total Cost: ${total_overall_cost:.2f}")
         
         
-        # 8. VIEW OPERATION
+        # 8.View operation
         print("\n8. VIEW OPERATION")
         print("Creating view: job_application_view")
         
@@ -279,9 +279,9 @@ def main():
         
         print("Job Applications View Results:")
         for row in result_view:
-            print(f"   Job {row.job_id}: {row.member_name} {row.member_surname} <- {row.caregiver_name} {row.caregiver_surname} ({row.required_caregiving_type}) - Applied: {row.date_applied}")
+            print(f"Job {row.job_id}: {row.member_name} {row.member_surname} <- {row.caregiver_name} {row.caregiver_surname} ({row.required_caregiving_type}) - Applied: {row.date_applied}")
         
-        print("\n✓ All queries executed successfully!")
+        print("\nAll queries executed successfully!")
         
     except Exception as e:
         print(f"Error: {e}")
