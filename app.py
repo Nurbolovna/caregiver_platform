@@ -122,22 +122,36 @@ def user_create():
     if request.method == 'POST':
         session = get_session()
         try:
-            user = User(
-                email=request.form['email'],
-                given_name=request.form['given_name'],
-                surname=request.form['surname'],
-                city=request.form.get('city', ''),
-                phone_number=request.form.get('phone_number', ''),
-                profile_description=request.form.get('profile_description', ''),
-                password=request.form['password']
-            )
-            session.add(user)
-            session.commit()
-            flash('User created successfully!', 'success')
-            return redirect(url_for('user_list'))
-        except Exception as e:
-            session.rollback()
-            flash(f'Error creating user: {str(e)}', 'error')
+            try:
+                user = User(
+                    email=request.form['email'],
+                    given_name=request.form['given_name'],
+                    surname=request.form['surname'],
+                    city=request.form.get('city', ''),
+                    phone_number=request.form.get('phone_number', ''),
+                    profile_description=request.form.get('profile_description', ''),
+                    password=request.form['password']
+                )
+                session.add(user)
+                session.commit()
+                flash('User created successfully!', 'success')
+                return redirect(url_for('user_list'))
+            except ValueError as e:
+                session.rollback()
+                flash(f'Invalid input: {str(e)}', 'error')
+            except KeyError as e:
+                session.rollback()
+                flash(f'Missing required field: {str(e)}', 'error')
+            except SQLAlchemyError as e:
+                session.rollback()
+                error_msg = str(e.orig) if hasattr(e, 'orig') else str(e)
+                if 'duplicate' in error_msg.lower() or 'unique' in error_msg.lower():
+                    flash('This email address is already registered. Please use a different email.', 'error')
+                else:
+                    flash(f'Database error: {error_msg}', 'error')
+            except Exception as e:
+                session.rollback()
+                flash(f'Error creating user: {str(e)}', 'error')
         finally:
             session.close()
     
@@ -786,24 +800,90 @@ def appointment_create():
     session = get_session()
     try:
         if request.method == 'POST':
-            appointment_date_str = request.form.get('appointment_date', '')
-            appointment_date = datetime.strptime(appointment_date_str, '%Y-%m-%d').date() if appointment_date_str else None
-            
-            appointment_time_str = request.form.get('appointment_time', '')
-            appointment_time = datetime.strptime(appointment_time_str, '%H:%M').time() if appointment_time_str else None
-            
-            appointment = Appointment(
-                caregiver_user_id=int(request.form['caregiver_user_id']),
-                member_user_id=int(request.form['member_user_id']),
-                appointment_date=appointment_date,
-                appointment_time=appointment_time,
-                work_hours=float(request.form['work_hours']) if request.form.get('work_hours') else None,
-                status=request.form.get('status', 'pending')
-            )
-            session.add(appointment)
-            session.commit()
-            flash('Appointment created successfully!', 'success')
-            return redirect(url_for('appointment_list'))
+            try:
+                appointment_date = None
+                appointment_date_str = request.form.get('appointment_date', '')
+                if appointment_date_str:
+                    try:
+                        appointment_date = datetime.strptime(appointment_date_str, '%Y-%m-%d').date()
+                    except ValueError:
+                        flash('Invalid date format. Please use YYYY-MM-DD format.', 'error')
+                        caregivers = session.query(Caregiver).join(User).all()
+                        members = session.query(Member).join(User).all()
+                        return render_template('appointment_form.html', appointment=None, caregivers=caregivers, members=members)
+                
+                appointment_time = None
+                appointment_time_str = request.form.get('appointment_time', '')
+                if appointment_time_str:
+                    try:
+                        appointment_time = datetime.strptime(appointment_time_str, '%H:%M').time()
+                    except ValueError:
+                        flash('Invalid time format. Please use HH:MM format.', 'error')
+                        caregivers = session.query(Caregiver).join(User).all()
+                        members = session.query(Member).join(User).all()
+                        return render_template('appointment_form.html', appointment=None, caregivers=caregivers, members=members)
+                
+                work_hours = None
+                if request.form.get('work_hours'):
+                    try:
+                        work_hours = float(request.form['work_hours'])
+                        if work_hours <= 0:
+                            raise ValueError("Work hours must be greater than 0")
+                    except ValueError as e:
+                        flash(f'Invalid work hours: {str(e)}', 'error')
+                        caregivers = session.query(Caregiver).join(User).all()
+                        members = session.query(Member).join(User).all()
+                        return render_template('appointment_form.html', appointment=None, caregivers=caregivers, members=members)
+                
+                status = request.form.get('status', 'pending')
+                if status not in ('pending', 'accepted', 'declined'):
+                    flash('Invalid status. Must be one of: pending, accepted, declined', 'error')
+                    caregivers = session.query(Caregiver).join(User).all()
+                    members = session.query(Member).join(User).all()
+                    return render_template('appointment_form.html', appointment=None, caregivers=caregivers, members=members)
+                
+                appointment = Appointment(
+                    caregiver_user_id=int(request.form['caregiver_user_id']),
+                    member_user_id=int(request.form['member_user_id']),
+                    appointment_date=appointment_date,
+                    appointment_time=appointment_time,
+                    work_hours=work_hours,
+                    status=status
+                )
+                session.add(appointment)
+                session.commit()
+                flash('Appointment created successfully!', 'success')
+                return redirect(url_for('appointment_list'))
+            except ValueError as e:
+                session.rollback()
+                flash(f'Invalid input: {str(e)}', 'error')
+                caregivers = session.query(Caregiver).join(User).all()
+                members = session.query(Member).join(User).all()
+                return render_template('appointment_form.html', appointment=None, caregivers=caregivers, members=members)
+            except KeyError as e:
+                session.rollback()
+                flash(f'Missing required field: {str(e)}', 'error')
+                caregivers = session.query(Caregiver).join(User).all()
+                members = session.query(Member).join(User).all()
+                return render_template('appointment_form.html', appointment=None, caregivers=caregivers, members=members)
+            except SQLAlchemyError as e:
+                session.rollback()
+                error_msg = str(e.orig) if hasattr(e, 'orig') else str(e)
+                if 'check' in error_msg.lower() or 'constraint' in error_msg.lower():
+                    flash('Invalid data: One or more fields violate database constraints. Please check your input.', 'error')
+                elif 'foreign key' in error_msg.lower():
+                    flash('Invalid caregiver or member ID. Please check your selection.', 'error')
+                else:
+                    flash(f'Database error: {error_msg}', 'error')
+                caregivers = session.query(Caregiver).join(User).all()
+                members = session.query(Member).join(User).all()
+                return render_template('appointment_form.html', appointment=None, caregivers=caregivers, members=members)
+            except Exception as e:
+                session.rollback()
+                flash(f'Error creating appointment: {str(e)}', 'error')
+                caregivers = session.query(Caregiver).join(User).all()
+                members = session.query(Member).join(User).all()
+                return render_template('appointment_form.html', appointment=None, caregivers=caregivers, members=members)
         
         caregivers = session.query(Caregiver).join(User).all()
         members = session.query(Member).join(User).all()
